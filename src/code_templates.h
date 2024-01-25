@@ -72,6 +72,10 @@ static const unsigned char *guiTemplateStandardCode = "\
 #define RAYGUI_IMPLEMENTATION\n\
 #include \"raygui.h\"\n\
 \n\
+#ifndef MAX_CONTROL_TEXT_LENGTH\n\
+#define MAX_CONTROL_TEXT_LENGTH 128\n\
+#endif\n\
+\n\
 //----------------------------------------------------------------------------------\n\
 // Controls Functions Declaration\n\
 //----------------------------------------------------------------------------------\n\
@@ -164,6 +168,10 @@ static const unsigned char *guiTemplateHeaderOnly = "\
 #include \"raygui.h\"\n\
 \n\
 #include <string.h>     // Required for: strcpy()\n\
+\n\
+#ifndef MAX_CONTROL_TEXT_LENGTH\n\
+#define MAX_CONTROL_TEXT_LENGTH 128\n\
+#endif\n\
 \n\
 #ifndef GUI_$(GUILAYOUT_NAME_UPPERCASE)_H\n\
 #define GUI_$(GUILAYOUT_NAME_UPPERCASE)_H\n\

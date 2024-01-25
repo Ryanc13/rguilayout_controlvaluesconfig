@@ -286,6 +286,7 @@ static void WriteFunctionsDeclarationC(unsigned char *toolstr, int *pos, GuiLayo
 // Write variables initialization code (.c)
 static void WriteInitializationC(unsigned char *toolstr, int *pos, GuiLayout *layout, GuiLayoutConfig config, int tabs)
 {
+
     // Const text
     if (config.defineTextAs == GUI_DEFINETEXT_CONST) WriteConstText(toolstr, pos, layout, config, tabs);
 
@@ -652,7 +653,7 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
 
                     if (define)
                     {
-                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        TextAppend(toolstr, TextFormat("char %sText[%s]", control.name, MAX_CONTROL_TEXT_LENGTH_TEXT), pos);
                         if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
                     }
                     else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
@@ -676,7 +677,7 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
 
                         if (define)
                         {
-                            TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                            TextAppend(toolstr, TextFormat("char %sText[%s]", control.name, MAX_CONTROL_TEXT_LENGTH_TEXT), pos);
                             if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
                         }
                         else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
@@ -699,7 +700,7 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
 
                     if (define)
                     {
-                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        TextAppend(toolstr, TextFormat("char %sText[%s]", control.name, MAX_CONTROL_TEXT_LENGTH_TEXT), pos);
                         if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
                     }
                     else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
@@ -720,7 +721,7 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
 
                     if (define)
                     {
-                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        TextAppend(toolstr, TextFormat("char %sText[%s]", control.name, MAX_CONTROL_TEXT_LENGTH_TEXT), pos);
                         if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
                     }
                     else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
@@ -742,7 +743,7 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
 
                     if (define)
                     {
-                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        TextAppend(toolstr, TextFormat("char %sText[%s]", control.name, MAX_CONTROL_TEXT_LENGTH_TEXT), pos);
                         if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
                     }
                     else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
@@ -770,7 +771,7 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
 
                     if (define)
                     {
-                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        TextAppend(toolstr, TextFormat("char %sText[%s]", control.name, MAX_CONTROL_TEXT_LENGTH_TEXT), pos);
                         if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
                     }
                     else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
@@ -798,7 +799,7 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
 
                     if (define)
                     {
-                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        TextAppend(toolstr, TextFormat("char %sText[%s]", control.name, MAX_CONTROL_TEXT_LENGTH_TEXT), pos);
                         if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
                     }
                     else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
@@ -817,7 +818,7 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
 
                 if (define)
                 {
-                    TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                    TextAppend(toolstr, TextFormat("char %sText[%s]", control.name, MAX_CONTROL_TEXT_LENGTH_TEXT), pos);
                     if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
                 }
                 else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
@@ -857,7 +858,7 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
 
                     if (define)
                     {
-                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        TextAppend(toolstr, TextFormat("char %sText[%s]", control.name, MAX_CONTROL_TEXT_LENGTH_TEXT), pos);
                         if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
                     }
                     else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
@@ -923,7 +924,7 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
                 {
                     if (define)
                     {
-                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        TextAppend(toolstr, TextFormat("char %sText[%s]", control.name, MAX_CONTROL_TEXT_LENGTH_TEXT), pos);
                         if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
                     }
                     else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);

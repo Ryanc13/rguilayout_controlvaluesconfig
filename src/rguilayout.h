@@ -35,6 +35,7 @@
 #define MAX_CONTROL_NAME_LENGTH          64      // Maximum length of control name
 #define MAX_CONTROL_VALUES_LENGTH        64      // Maximum length of control values
 #define MAX_CONTROL_TEXT_LENGTH         128      // Maximum length of control text
+#define MAX_CONTROL_TEXT_LENGTH_TEXT "MAX_CONTROL_TEXT_LENGTH"
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
