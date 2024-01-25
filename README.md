@@ -1,3 +1,8 @@
+Just adding some additional options / features for exporting to code.
+
+Goal for this is just to make having larger gui layout files easier to maintain and update and not require modifying of
+exported code files and instead can be configured / modified easily by a wrapper implementing the exported file.
+
 <img align="left" src="logo/rguilayout_256x256.png" width=256>
 
 # rGuiLayout
