@@ -72,6 +72,12 @@ typedef enum {
     GUI_DUMMYREC        = 23
 } GuiControlType;
 
+typedef enum {
+    GUI_DEFINETEXT_NONE         = 0,
+    GUI_DEFINETEXT_CONST        = 1,
+    GUI_DEFINETEXT_VARIABLE     = 2
+} GuiDefineTextType;
+
 // Anchor point type
 typedef struct GuiAnchorPoint GuiAnchorPoint;
 struct GuiAnchorPoint {
@@ -113,7 +119,7 @@ typedef struct {
     const char *template;                     // Code template
     bool exportAnchors;
     bool defineRecs;
-    bool defineTexts;
+    int defineTextAs;
     bool fullComments;
     bool exportButtonFunctions;
 } GuiLayoutConfig;

@@ -494,7 +494,7 @@ int main(int argc, char *argv[])
     config.template = NULL;
     config.exportAnchors = false;
     config.defineRecs = false;
-    config.defineTexts = false;
+    config.defineTextAs = 0;
     config.fullComments = false;
     config.exportButtonFunctions = false;
 
@@ -734,7 +734,7 @@ int main(int argc, char *argv[])
             strcpy(config.description, windowCodegenState.toolDescriptionText);
             config.exportAnchors = windowCodegenState.exportAnchorsChecked;
             config.defineRecs = windowCodegenState.defineRecsChecked;
-            config.defineTexts = windowCodegenState.defineTextsChecked;
+            config.defineTextAs = windowCodegenState.defineTextAs;
             config.fullComments = windowCodegenState.fullCommentsChecked;
             config.exportButtonFunctions = windowCodegenState.genButtonFuncsChecked;
 
@@ -765,7 +765,7 @@ int main(int argc, char *argv[])
             strcpy(config.description, windowCodegenState.toolDescriptionText);
             config.exportAnchors = windowCodegenState.exportAnchorsChecked;
             config.defineRecs = windowCodegenState.defineRecsChecked;
-            config.defineTexts = windowCodegenState.defineTextsChecked;
+            config.defineTextAs = windowCodegenState.defineTextAs;
             config.fullComments = windowCodegenState.fullCommentsChecked;
             config.exportButtonFunctions = windowCodegenState.genButtonFuncsChecked;
 

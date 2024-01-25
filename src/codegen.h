@@ -105,14 +105,14 @@ static void WriteFunctionDrawingH(unsigned char *toolstr, int *pos, GuiLayout *l
 static void WriteRectangleVariables(unsigned char *toolstr, int *pos, GuiLayoutControl control, bool exportAnchors, bool fullComments, const char *preText, int tabs, bool exportH);
 static void WriteAnchors(unsigned char *toolstr, int *pos, GuiLayout *layout, GuiLayoutConfig config, bool define, bool initialize, const char *preText, int tabs);
 static void WriteConstText(unsigned char *toolstr, int *pos, GuiLayout *layout, GuiLayoutConfig config, int tabs);
-static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *layout, GuiLayoutConfig config, bool define, bool initialize, const char *preText, int tabs);
+static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *layout, GuiLayoutConfig config, bool define, bool initialize, bool textAsVariable, const char *preText, int tabs);
 static void WriteControlsDrawing(unsigned char *toolstr, int *pos, GuiLayout *layout, GuiLayoutConfig config, const char *preText, int tabs);
 static void WriteControlDraw(unsigned char *toolstr, int *pos, int index, GuiLayoutControl control, GuiLayoutConfig config, const char *preText);
 
 // Get controls specific texts functions
 static char *GetControlRectangleText(int index, GuiLayoutControl control, bool defineRecs, bool exportAnchors,  const char *preText);
 static char *GetScrollPanelContainerRecText(int index, GuiLayoutControl control, bool defineRecs, bool exportAnchors, const char *preText);
-static char *GetControlTextParam(GuiLayoutControl control, bool defineText);
+static char *GetControlTextParam(GuiLayoutControl control, int defineTextAs, const char* preText);
 static char *GetControlNameParam(char *controlName, const char *preText);
 static int  *GetControlValuesParam(GuiLayoutControl control);
 
@@ -287,13 +287,13 @@ static void WriteFunctionsDeclarationC(unsigned char *toolstr, int *pos, GuiLayo
 static void WriteInitializationC(unsigned char *toolstr, int *pos, GuiLayout *layout, GuiLayoutConfig config, int tabs)
 {
     // Const text
-    if (config.defineTexts) WriteConstText(toolstr, pos, layout, config, tabs);
+    if (config.defineTextAs == GUI_DEFINETEXT_CONST) WriteConstText(toolstr, pos, layout, config, tabs);
 
     // Anchors
     if (config.exportAnchors && (layout->anchorCount > 0)) WriteAnchors(toolstr, pos, layout, config, true, true, "", tabs);
 
     // Control variables
-    if (layout->controlCount > 0) WriteControlsVariables(toolstr, pos, layout, config, true, true, "", tabs);
+    if (layout->controlCount > 0) WriteControlsVariables(toolstr, pos, layout, config, true, true, config.defineTextAs == GUI_DEFINETEXT_VARIABLE, "", tabs);
 
     // Rectangles
     if (config.defineRecs)
@@ -373,7 +373,7 @@ static void WriteStruct(unsigned char *toolstr, int *pos, GuiLayout *layout, Gui
     if (config.exportAnchors && (layout->anchorCount > 0)) WriteAnchors(toolstr, pos, layout, config, true, false, "", tabs + 1);
 
     // Write controls variables
-    if (layout->controlCount > 0) WriteControlsVariables(toolstr, pos, layout, config, true, false, "", tabs + 1);
+    if (layout->controlCount > 0) WriteControlsVariables(toolstr, pos, layout, config, true, false, config.defineTextAs == GUI_DEFINETEXT_VARIABLE, "", tabs + 1);
 
     // Export rectangles
     if (config.defineRecs)
@@ -434,7 +434,7 @@ static void WriteFunctionInitializeH(unsigned char *toolstr, int *pos, GuiLayout
     // Init controls variables
     if (layout->controlCount > 0)
     {
-        WriteControlsVariables(toolstr, pos, layout, config, false, true, "state.", tabs + 1);
+        WriteControlsVariables(toolstr, pos, layout, config, false, true, config.defineTextAs == GUI_DEFINETEXT_VARIABLE, "state.", tabs + 1);
     }
 
     // Define controls rectangles if required
@@ -493,7 +493,7 @@ static void WriteFunctionDrawingH(unsigned char *toolstr, int *pos, GuiLayout *l
     TABAPPEND(toolstr, pos, tabs + 1);
 
     // Const text
-    if (config.defineTexts) WriteConstText(toolstr, pos, layout, config, tabs + 1);
+    if (config.defineTextAs == GUI_DEFINETEXT_CONST) WriteConstText(toolstr, pos, layout, config, tabs + 1);
 
     // Controls draw
     if (layout->controlCount > 0) WriteControlsDrawing(toolstr, pos, layout, config, "state->", tabs + 1);
@@ -622,7 +622,7 @@ static void WriteConstText(unsigned char *toolstr, int *pos, GuiLayout *layout, 
 }
 
 // Write controls variables code (.c/.h)
-static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *layout, GuiLayoutConfig config, bool define, bool initialize, const char *preText, int tabs)
+static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *layout, GuiLayoutConfig config, bool define, bool initialize, bool textAsVariable, const char *preText, int tabs)
 {
     if (config.fullComments)
     {
@@ -645,6 +645,19 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
                 TextAppend(toolstr, TextFormat("%sActive", control.name), pos);
                 if (initialize) TextAppend(toolstr, " = true", pos);
                 TextAppend(toolstr, ";", pos);
+
+                if (textAsVariable)
+                {
+                    ENDLINEAPPEND(toolstr, pos); TABAPPEND(toolstr, pos, tabs);
+
+                    if (define)
+                    {
+                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
+                    }
+                    else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
+                    TextAppend(toolstr, ";", pos);
+                }
             } break;
             case GUI_BUTTON:
             case GUI_LABELBUTTON:
@@ -656,6 +669,19 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
                     TextAppend(toolstr, TextFormat("%sPressed", control.name), pos);
                     if (initialize) TextAppend(toolstr, " = false", pos);
                     TextAppend(toolstr, ";", pos);
+
+                    if (textAsVariable)
+                    {
+                        ENDLINEAPPEND(toolstr, pos); TABAPPEND(toolstr, pos, tabs);
+
+                        if (define)
+                        {
+                            TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                            if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
+                        }
+                        else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
+                        TextAppend(toolstr, ";", pos);
+                    }
                 }
                 else drawVariables = false;
             } break;
@@ -666,6 +692,19 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
                 TextAppend(toolstr, TextFormat("%sChecked", control.name), pos);
                 if (initialize) TextAppend(toolstr, " = false", pos);
                 TextAppend(toolstr, ";", pos);
+
+                if (textAsVariable)
+                {
+                    ENDLINEAPPEND(toolstr, pos); TABAPPEND(toolstr, pos, tabs);
+
+                    if (define)
+                    {
+                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
+                    }
+                    else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
+                    TextAppend(toolstr, ";", pos);
+                }
             } break;
             case GUI_TOGGLE:
             {
@@ -674,6 +713,19 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
                 TextAppend(toolstr, TextFormat("%sActive", control.name), pos);
                 if (initialize) TextAppend(toolstr, " = true", pos);
                 TextAppend(toolstr, ";", pos);
+
+                if (textAsVariable)
+                {
+                    ENDLINEAPPEND(toolstr, pos); TABAPPEND(toolstr, pos, tabs);
+
+                    if (define)
+                    {
+                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
+                    }
+                    else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
+                    TextAppend(toolstr, ";", pos);
+                }
             } break;
             case GUI_TOGGLEGROUP:
             case GUI_COMBOBOX:
@@ -683,6 +735,19 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
                 TextAppend(toolstr, TextFormat("%sActive", control.name), pos);
                 if (initialize) TextAppend(toolstr, " = 0", pos);
                 TextAppend(toolstr, ";", pos);
+
+                if (textAsVariable)
+                {
+                    ENDLINEAPPEND(toolstr, pos); TABAPPEND(toolstr, pos, tabs);
+
+                    if (define)
+                    {
+                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
+                    }
+                    else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
+                    TextAppend(toolstr, ";", pos);
+                }
             } break;
             case GUI_LISTVIEW:
             {
@@ -698,6 +763,19 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
                 TextAppend(toolstr, TextFormat("%sActive", control.name), pos);
                 if (initialize) TextAppend(toolstr, " = 0", pos);
                 TextAppend(toolstr, ";", pos);
+
+                if (textAsVariable)
+                {
+                    ENDLINEAPPEND(toolstr, pos); TABAPPEND(toolstr, pos, tabs);
+
+                    if (define)
+                    {
+                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
+                    }
+                    else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
+                    TextAppend(toolstr, ";", pos);
+                }
             } break;
             case GUI_DROPDOWNBOX:
             {
@@ -713,6 +791,19 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
                 TextAppend(toolstr, TextFormat("%sActive", control.name), pos);
                 if (initialize) TextAppend(toolstr, " = 0", pos);
                 TextAppend(toolstr, ";", pos);
+
+                if (textAsVariable)
+                {
+                    ENDLINEAPPEND(toolstr, pos); TABAPPEND(toolstr, pos, tabs);
+
+                    if (define)
+                    {
+                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
+                    }
+                    else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
+                    TextAppend(toolstr, ";", pos);
+                }
             } break;
             case GUI_TEXTBOX:
             case GUI_TEXTBOXMULTI:
@@ -759,6 +850,19 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
                 TextAppend(toolstr, TextFormat("%sValue", control.name), pos);
                 if (initialize) TextAppend(toolstr, " = 0.0f", pos);
                 TextAppend(toolstr, ";", pos);
+                
+                if (textAsVariable)
+                {
+                    ENDLINEAPPEND(toolstr, pos); TABAPPEND(toolstr, pos, tabs);
+
+                    if (define)
+                    {
+                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
+                    }
+                    else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
+                    TextAppend(toolstr, ";", pos);
+                }
             } break;
             case GUI_COLORPICKER:
             {
@@ -811,11 +915,24 @@ static void WriteControlsVariables(unsigned char *toolstr, int *pos, GuiLayout *
                 TextAppend(toolstr, ";", pos);
             } break;
             case GUI_GROUPBOX:
-            case GUI_LINE:
-            case GUI_PANEL:
             case GUI_LABEL:
             case GUI_DUMMYREC:
             case GUI_STATUSBAR:
+            {
+                if (textAsVariable)
+                {
+                    if (define)
+                    {
+                        TextAppend(toolstr, TextFormat("char %sText[%i]", control.name, MAX_CONTROL_TEXT_LENGTH), pos);
+                        if (initialize) TextAppend(toolstr, TextFormat(" = \"%s\"", control.text), pos);
+                    }
+                    else if (initialize) TextAppend(toolstr, TextFormat("strcpy(%s%sText, \"%s\")", preText, control.name, control.text), pos);
+                    TextAppend(toolstr, ";", pos);
+                }
+            }break;
+                
+            case GUI_LINE:
+            case GUI_PANEL:
             default:
             {
                 drawVariables = false;
@@ -976,7 +1093,7 @@ static void WriteControlsDrawing(unsigned char *toolstr, int *pos, GuiLayout *la
 static void WriteControlDraw(unsigned char *toolstr, int *pos, int index, GuiLayoutControl control, GuiLayoutConfig config, const char *preText)
 {
     char *rec = GetControlRectangleText(index, control, config.defineRecs, config.exportAnchors, preText);
-    char *text = GetControlTextParam(control, config.defineTexts);
+    char *text = GetControlTextParam(control, config.defineTextAs, preText);
     char *name = GetControlNameParam(control.name, preText);
 	int  *values = GetControlValuesParam(control);
 
@@ -1076,12 +1193,33 @@ static char *GetScrollPanelContainerRecText(int index, GuiLayoutControl control,
 }
 
 // Get controls parameters text
-static char *GetControlTextParam(GuiLayoutControl control, bool defineText)
+static char *GetControlTextParam(GuiLayoutControl control, int defineTextAs, const char* preText)
 {
     static char text[512];
     memset(text, 0, 512);
 
-    if (defineText) strcpy(text, TextFormat("%sText", control.name));
+    bool isTextDefinable = (control.type == GUI_WINDOWBOX ||
+                            control.type == GUI_GROUPBOX ||
+                            control.type == GUI_LABEL ||
+                            control.type == GUI_BUTTON ||
+                            control.type == GUI_LABELBUTTON ||
+                            control.type == GUI_CHECKBOX ||
+                            control.type == GUI_TOGGLE ||
+                            control.type == GUI_SLIDER ||
+                            control.type == GUI_SLIDERBAR ||
+                            control.type == GUI_PROGRESSBAR ||
+                            control.type == GUI_TOGGLEGROUP ||
+                            control.type == GUI_COMBOBOX ||
+                            control.type == GUI_DROPDOWNBOX ||
+                            control.type == GUI_LISTVIEW ||
+                            control.type == GUI_DUMMYREC ||
+                            control.type == GUI_STATUSBAR);
+
+    if (isTextDefinable && defineTextAs != GUI_DEFINETEXT_NONE)
+    {
+        if (defineTextAs == GUI_DEFINETEXT_CONST) strcpy(text, TextFormat("%sText", control.name));
+        else strcpy(text, TextFormat("%s%sText", preText, control.name));
+    }
     else 
     {
         // NOTE: control.text will never be NULL

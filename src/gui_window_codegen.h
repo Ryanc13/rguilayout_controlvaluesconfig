@@ -58,7 +58,8 @@ typedef struct {
 
     bool exportAnchorsChecked;
     bool defineRecsChecked;
-    bool defineTextsChecked;
+    int  defineTextAs;
+	bool defineTextAsEditMode;
     bool fullCommentsChecked;
     bool genButtonFuncsChecked;
 
@@ -145,7 +146,7 @@ GuiWindowCodegenState InitGuiWindowCodegen(void)
     state.codeTemplateActive = 0;
     state.exportAnchorsChecked = false;
     state.defineRecsChecked = false;
-    state.defineTextsChecked = false;
+    state.defineTextAs = 0;
     state.fullCommentsChecked = false;
     state.genButtonFuncsChecked = false;
 
@@ -172,6 +173,8 @@ void GuiWindowCodegen(GuiWindowCodegenState *state)
         state->windowBounds = (Rectangle){ GetScreenWidth()/2.0f - 1024/2, GetScreenHeight()/2.0f - 640/2, 1024, 640 };
         state->windowActive = !GuiWindowBox(state->windowBounds, "#7#Code Generation Window");
 
+        if (state->defineTextAsEditMode) GuiLock();
+
         GuiGroupBox((Rectangle){ state->windowBounds.x + 765, state->windowBounds.y + 40, 248, 178 }, "#101#Layout Info");
         GuiLabel((Rectangle){ state->windowBounds.x + 775, state->windowBounds.y + 58, 100, 24 }, "Name:");
         if (GuiTextBox((Rectangle){ state->windowBounds.x + 845, state->windowBounds.y + 58, 158, 24 }, state->toolNameText, 64, state->toolNameEditMode)) state->toolNameEditMode = !state->toolNameEditMode;
@@ -185,13 +188,15 @@ void GuiWindowCodegen(GuiWindowCodegenState *state)
         GuiGroupBox((Rectangle){ state->windowBounds.x + 765, state->windowBounds.y + 236, 248, 226 }, "#142#Code Generation Options");
         GuiCheckBox((Rectangle){ state->windowBounds.x + 785, state->windowBounds.y + 292, 16, 16 }, "Export anchors", &state->exportAnchorsChecked);
         GuiCheckBox((Rectangle){ state->windowBounds.x + 785, state->windowBounds.y + 292 + 24, 16, 16 }, "Define Rectangles", &state->defineRecsChecked);
-        GuiCheckBox((Rectangle){ state->windowBounds.x + 785, state->windowBounds.y + 292 + 48, 16, 16 }, "Define text as const", &state->defineTextsChecked);
-        GuiCheckBox((Rectangle){ state->windowBounds.x + 785, state->windowBounds.y + 292 + 72, 16, 16 }, "Include detailed comments", &state->fullCommentsChecked);
-        GuiCheckBox((Rectangle){ state->windowBounds.x + 785, state->windowBounds.y + 292 + 96, 16, 16 }, "Generate button functions", &state->genButtonFuncsChecked);
+        GuiCheckBox((Rectangle){ state->windowBounds.x + 785, state->windowBounds.y + 292 + 80, 16, 16 }, "Include detailed comments", &state->fullCommentsChecked);
+        GuiCheckBox((Rectangle){ state->windowBounds.x + 785, state->windowBounds.y + 292 + 104, 16, 16 }, "Generate button functions", &state->genButtonFuncsChecked);
 
         if (state->codeTemplateActive != 2) GuiDisable();
         state->btnLoadCustomTemplatePressed = GuiButton((Rectangle){ state->windowBounds.x + 775, state->windowBounds.y + 292 + 128, 228, 24 }, state->customTemplateLoaded? "#9#Unload Custom Template" : "#5#Load Custom Template");
         GuiEnable();
+
+        if (GuiDropdownBox((Rectangle){ state->windowBounds.x + 785, state->windowBounds.y + 292 + 48, 220, 24 }, "Do not define text;Define text as const;Define text as variable", &state->defineTextAs, state->defineTextAsEditMode)) state->defineTextAsEditMode = !state->defineTextAsEditMode;
+        GuiUnlock();
 
         // Export generated code button
         state->btnExportCodePressed = GuiButton((Rectangle){ state->windowBounds.x + 765, state->windowBounds.y + 278 + 184 + 16, 248, 28 }, "#7#Export Generated Code");
